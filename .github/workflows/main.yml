@@ -20,7 +20,7 @@ jobs:
           load: true
 
   build:
-    name: Build and deploy
+    name: Build and push Docker image
     needs: test
     runs-on: ubuntu-latest
     steps:
