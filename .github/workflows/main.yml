@@ -5,8 +5,7 @@ on:
       - feat/practice-todo-app
   push:
     branches:
-      - feat/practice-todo-app
-
+      - stag
 jobs:
   test:
     name: Run tests on backend
