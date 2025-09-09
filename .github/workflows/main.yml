@@ -5,8 +5,7 @@ on:
       - feat/practice-todo-app
   push:
     branches:
-      - feat/practice-todo-app
-
+      - stag
 jobs:
   test:
     name: Run tests on backend
@@ -43,6 +42,7 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/nodejs-todo-app:latest
   deploy:
     name: Deploy to Render
+    if: github.ref == 'refs/heads/stag'
     needs: build
     runs-on: ubuntu-latest
     steps:
