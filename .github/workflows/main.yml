@@ -40,4 +40,14 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           target: final
-          tags: ${{ secrets.DOCKER_USERNAME }}/todo-app:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/nodejs-todo-app:latest
+  deploy:
+    name: Deploy to Render
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Render
+        uses: JorgeLNJunior/render-deploy@v1.4.5
+        with:
+          service_id: ${{ secrets.RENDER_SERVICE_ID }}
+          api_key: ${{ secrets.RENDER_API_KEY }}
