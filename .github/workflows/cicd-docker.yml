@@ -10,13 +10,19 @@ on:
 
 jobs:
   test:
-    name: Run tests on backend
+    name: Run backend tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Load environment variables
+      - name: Generate .env file
         run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
+          cat > .env <<EOF
+          DOCKER_COMPOSE_MYSQL_HOST=${{ secrets.DOCKER_COMPOSE_MYSQL_HOST }}
+          DOCKER_COMPOSE_MYSQL_USER=${{ secrets.DOCKER_COMPOSE_MYSQL_USER }}
+          DOCKER_COMPOSE_MYSQL_PASSWORD=${{ secrets.DOCKER_COMPOSE_MYSQL_PASSWORD }}
+          DOCKER_COMPOSE_MYSQL_DB=${{ secrets.DOCKER_COMPOSE_MYSQL_DB }}
+          EOF
+
       - name: Build and run tests
         uses: docker/build-push-action@v6
         with:
@@ -29,9 +35,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Load environment variables
+
+      - name: Generate .env file
         run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
+          cat > .env <<EOF
+          DOCKER_COMPOSE_MYSQL_HOST=${{ secrets.DOCKER_COMPOSE_MYSQL_HOST }}
+          DOCKER_COMPOSE_MYSQL_USER=${{ secrets.DOCKER_COMPOSE_MYSQL_USER }}
+          DOCKER_COMPOSE_MYSQL_PASSWORD=${{ secrets.DOCKER_COMPOSE_MYSQL_PASSWORD }}
+          DOCKER_COMPOSE_MYSQL_DB=${{ secrets.DOCKER_COMPOSE_MYSQL_DB }}
+          EOF
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -49,10 +61,10 @@ jobs:
           target: final
           tags: ${{ secrets.DOCKER_USERNAME }}/nodejs-todo-app:latest
           build-args: |
-            MYSQL_HOST=${{ secrets.DOCKER_COMPOSE_MYSQL_HOST }}
-            MYSQL_USER=${{ secrets.DOCKER_COMPOSE_MYSQL_USER }}
-            MYSQL_PASSWORD=${{ secrets.DOCKER_COMPOSE_MYSQL_PASSWORD }}
-            MYSQL_DB=${{ secrets.DOCKER_COMPOSE_MYSQL_DB }}
+            DOCKER_COMPOSE_MYSQL_HOST=${{ secrets.DOCKER_COMPOSE_MYSQL_HOST }}
+            DOCKER_COMPOSE_MYSQL_USER=${{ secrets.DOCKER_COMPOSE_MYSQL_USER }}
+            DOCKER_COMPOSE_MYSQL_PASSWORD=${{ secrets.DOCKER_COMPOSE_MYSQL_PASSWORD }}
+            DOCKER_COMPOSE_MYSQL_DB=${{ secrets.DOCKER_COMPOSE_MYSQL_DB }}
 
   deploy:
     name: Deploy to Render Cloud
