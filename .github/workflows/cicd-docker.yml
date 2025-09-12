@@ -18,7 +18,7 @@ jobs:
           target: test
           load: true
 
-  build:
+  push-docker-image:
     name: Build and push Docker image
     needs: test
     runs-on: ubuntu-latest
@@ -51,4 +51,3 @@ jobs:
         with:
           service_id: ${{ secrets.RENDER_SERVICE_ID }}
           api_key: ${{ secrets.RENDER_API_KEY }}
-    
