@@ -57,7 +57,7 @@ jobs:
   deploy:
     name: Deploy to Render Cloud
     if: github.ref == 'refs/heads/stag'
-    needs: push-docker-image
+    needs: push_docker_image
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Render
