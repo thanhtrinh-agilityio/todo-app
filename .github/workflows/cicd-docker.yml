@@ -1,4 +1,5 @@
 name: Build and deploy Todo App
+
 on:
   pull_request:
     branches:
@@ -6,24 +7,43 @@ on:
   push:
     branches:
       - stag
+
 jobs:
   test:
-    name: Run tests on backend
+    name: Run backend tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Generate .env file
+        run: |
+          cat > .env <<EOF
+          DOCKER_COMPOSE_MYSQL_HOST=${{ secrets.DOCKER_COMPOSE_MYSQL_HOST }}
+          DOCKER_COMPOSE_MYSQL_USER=${{ secrets.DOCKER_COMPOSE_MYSQL_USER }}
+          DOCKER_COMPOSE_MYSQL_PASSWORD=${{ secrets.DOCKER_COMPOSE_MYSQL_PASSWORD }}
+          DOCKER_COMPOSE_MYSQL_DB=${{ secrets.DOCKER_COMPOSE_MYSQL_DB }}
+          EOF
+
       - name: Build and run tests
         uses: docker/build-push-action@v6
         with:
           target: test
           load: true
 
-  build:
+  push_docker_image:
     name: Build and push Docker image
     needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Generate .env file
+        run: |
+          cat > .env <<EOF
+          DOCKER_COMPOSE_MYSQL_HOST=${{ secrets.DOCKER_COMPOSE_MYSQL_HOST }}
+          DOCKER_COMPOSE_MYSQL_USER=${{ secrets.DOCKER_COMPOSE_MYSQL_USER }}
+          DOCKER_COMPOSE_MYSQL_PASSWORD=${{ secrets.DOCKER_COMPOSE_MYSQL_PASSWORD }}
+          DOCKER_COMPOSE_MYSQL_DB=${{ secrets.DOCKER_COMPOSE_MYSQL_DB }}
+          EOF
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -40,10 +60,16 @@ jobs:
           push: true
           target: final
           tags: ${{ secrets.DOCKER_USERNAME }}/nodejs-todo-app:latest
+          build-args: |
+            DOCKER_COMPOSE_MYSQL_HOST=${{ secrets.DOCKER_COMPOSE_MYSQL_HOST }}
+            DOCKER_COMPOSE_MYSQL_USER=${{ secrets.DOCKER_COMPOSE_MYSQL_USER }}
+            DOCKER_COMPOSE_MYSQL_PASSWORD=${{ secrets.DOCKER_COMPOSE_MYSQL_PASSWORD }}
+            DOCKER_COMPOSE_MYSQL_DB=${{ secrets.DOCKER_COMPOSE_MYSQL_DB }}
+
   deploy:
-    name: Deploy to Render
+    name: Deploy to Render Cloud
     if: github.ref == 'refs/heads/stag'
-    needs: build
+    needs: push_docker_image
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Render
