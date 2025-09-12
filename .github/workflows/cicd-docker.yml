@@ -1,4 +1,5 @@
 name: Build and deploy Todo App
+
 on:
   pull_request:
     branches:
@@ -6,24 +7,31 @@ on:
   push:
     branches:
       - stag
+
 jobs:
   test:
     name: Run tests on backend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Load environment variables
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
       - name: Build and run tests
         uses: docker/build-push-action@v6
         with:
           target: test
           load: true
 
-  build:
+  push_docker_image:
     name: Build and push Docker image
     needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Load environment variables
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -40,10 +48,16 @@ jobs:
           push: true
           target: final
           tags: ${{ secrets.DOCKER_USERNAME }}/nodejs-todo-app:latest
+          build-args: |
+            MYSQL_HOST=${{ secrets.DOCKER_COMPOSE_MYSQL_HOST }}
+            MYSQL_USER=${{ secrets.DOCKER_COMPOSE_MYSQL_USER }}
+            MYSQL_PASSWORD=${{ secrets.DOCKER_COMPOSE_MYSQL_PASSWORD }}
+            MYSQL_DB=${{ secrets.DOCKER_COMPOSE_MYSQL_DB }}
+
   deploy:
     name: Deploy to Render Cloud
     if: github.ref == 'refs/heads/stag'
-    needs: build
+    needs: push_docker_image
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Render
@@ -51,4 +65,3 @@ jobs:
         with:
           service_id: ${{ secrets.RENDER_SERVICE_ID }}
           api_key: ${{ secrets.RENDER_API_KEY }}
-    
